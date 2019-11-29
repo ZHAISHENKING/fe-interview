@@ -1,8 +1,61 @@
 ## 第24篇: JavaScript内存机制之问——数据是如何存储的？
 
-一言以蔽之: 基本数据类型用`栈`存储，引用数据类型用`堆`存储。
+~~基本数据类型用`栈`存储，引用数据类型用`堆`存储~~
+基本数据类型不一定都用`栈`存储。
+### JS中的变量
+JS中的变量分为三种类型： 全局变量、局部变量、被捕获变量
 
-具体而言，以下数据类型存储在栈中:
+**局部变量**
+
+局部变量很好理解：在函数中声明，且在函数返回后不会被其他作用域所使用的对象。下面代码中的 local* 都是局部变量。
+```js
+function test () {
+    let local1 = 1;
+    var local2 = 'str';
+    const local3 = true;
+    let local4 = {a: 1};
+    return;
+}
+```
+
+**被捕获变量**
+
+被捕获变量就是局部变量的反面：在函数中声明，但在函数返回后仍有未执行作用域（函数或是类）使用到该变量，那么该变量就是被捕获变量。下面代码中的 catch* 都是被捕获变量。
+```js
+function test1 () {
+    let catch1 = 1;
+    var catch2 = 'str';
+    const catch3 = true;
+    let catch4 = {a: 1};
+    return function () {
+        console.log(catch1, catch2, catch3, catch4)
+    }
+}
+
+function test2 () {
+    let catch1 = 1;
+    let catch2 = 'str';
+    let catch3 = true;
+    var catch4 = {a: 1};
+    return class {
+        constructor(){
+            console.log(catch1, catch2, catch3, catch4)
+        }
+    }
+}
+
+console.dir(test1())
+console.dir(test2())
+```
+复制代码到 Chrome 即可查看输出对象下的 [[Scopes]] 下有对应的 Scope。
+
+**全局变量**
+
+全局变量就是 global，在 浏览器上为 window 在 node 里为 global。全局变量会被默认添加到函数作用域链的最低端，也就是上述函数中 [[Scopes]] 中的最后一个。
+
+除了局部变量之外的其他两种变量，实际上都是在堆中存储的
+
+以下是JS中基本的数据类型：
 
 - boolean
 - null
@@ -12,7 +65,7 @@
 - symbol
 - bigint
 
-而所有的对象数据类型存放在堆中。
+所有的对象数据类型存放在堆中。
 
 值得注意的是，对于`赋值`操作，原始类型的数据直接完整地赋值变量值，对象数据类型的数据则是复制引用地址。
 
